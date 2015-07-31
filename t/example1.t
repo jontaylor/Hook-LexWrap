@@ -10,12 +10,12 @@ sub doit { $str.= "[doit:{".join(',',caller)."}]"; return {my=>"data"} }
 SCOPED: {
  no warnings 'uninitialized'; #last argument in wrapper sub
  wrap doit =>
-  pre => sub { $str.="[pre1: @_]" },
+  pre => sub { @_ = @{$_[0]};  $str.="[pre1: @_ ]" },
   post => sub { $str.="[post1:@_]"; $_[1]=9; };
 
  my $temporarily = wrap doit =>
   post => sub { $str.="[post2:@_]" },
-  pre => sub { $str.="[pre2: @_]"};
+  pre => sub { @_ = @{$_[0]}; $str.="[pre2: @_ ]"};
 
  my @args = (1,2,3);
  doit(@args); # pre2->pre1->doit->post1->post2

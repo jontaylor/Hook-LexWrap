@@ -47,7 +47,7 @@ sub wrap (*@) {  ## no critic Prototypes
 		my ($return, $prereturn);
 		if (wantarray) {
 			$prereturn = $return = [];
-			() = $wrapper{pre}->(@_,$return) if $wrapper{pre};
+			() = $wrapper{pre}->(\@_,$return) if $wrapper{pre};
 			if (ref $return eq 'ARRAY' && $return == $prereturn && !@$return) {
 				$return = [ &$original ];
 				() = $wrapper{post}->(@_, $return)
@@ -57,7 +57,7 @@ sub wrap (*@) {  ## no critic Prototypes
 		}
 		elsif (defined wantarray) {
 			$return = bless sub {$prereturn=1}, 'Hook::LexWrap::Cleanup';
-			my $dummy = $wrapper{pre}->(@_, $return) if $wrapper{pre};
+			my $dummy = $wrapper{pre}->(\@_, $return) if $wrapper{pre};
 			unless ($prereturn) {
 				$return = &$original;
 				$dummy = scalar $wrapper{post}->(@_, $return)
@@ -67,7 +67,7 @@ sub wrap (*@) {  ## no critic Prototypes
 		}
 		else {
 			$return = bless sub {$prereturn=1}, 'Hook::LexWrap::Cleanup';
-			$wrapper{pre}->(@_, $return) if $wrapper{pre};
+			$wrapper{pre}->(\@_, $return) if $wrapper{pre};
 			unless ($prereturn) {
 				&$original;
 				$wrapper{post}->(@_, $return)

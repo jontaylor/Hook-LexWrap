@@ -14,7 +14,7 @@ actual 1;
 			pre  => sub { ok 2 },
 			post => sub { ok 4 };
 
-	wrap actual => pre => sub { $_[0]++ };
+	wrap actual => pre => sub { $_[0]->[0]++ };
 
 	my $x = 2;
 	actual $x;
@@ -35,7 +35,7 @@ eval { wrap actual => post => [] } and print "not ";
 ok 9;
 
 BEGIN { *{CORE::GLOBAL::sqrt} = sub { CORE::sqrt(shift) } }
-wrap 'CORE::GLOBAL::sqrt', pre => sub { $_[0]++ };
+wrap 'CORE::GLOBAL::sqrt', pre => sub { $_[0]->[0]++ };
 
 $x = 99;
 ok sqrt($x);
@@ -43,7 +43,7 @@ ok sqrt($x);
 sub temp { ok $_[0] };
 
 my $sub = wrap \&temp,
-	pre  => sub { ok $_[0]-1 },
+	pre  => sub { ok $_[0]->[0]-1 },
 	post => sub { ok $_[0]+1 };
 
 $sub->(12);
@@ -51,7 +51,7 @@ temp(14);
 
 {
 	local $SIG{__WARN__} = sub { ok 15 };
-	eval { wrap \&temp, pre => sub { ok $_[0]-1 }; 1 } and ok 16;
+	eval { wrap \&temp, pre => sub { ok $_[0]->[0]-1 }; 1 } and ok 16;
 }
 
 use Carp;
@@ -62,7 +62,7 @@ sub wrapped_callee {
 
 wrap wrapped_callee =>
 	pre =>sub{
-		print "not " unless $_[0] eq join '|', caller;
+		print "not " unless $_[0]->[0] eq join '|', caller;
 		ok 17
 	},
 	post=>sub{
@@ -129,7 +129,7 @@ sub shorted_list { return (2..9) };
 sub howmany { ok 32 if @_ == 3 }
 
 wrap howmany =>
-	pre  => sub { ok 31 if @_ == 4 },
+	pre  => sub { ok 31 if @_ == 2 },
 	post => sub { ok 33 if @_ == 4 };
 
 howmany(1..3);
@@ -145,10 +145,10 @@ sub wanted {
 
 wrap wanted =>
 	pre => sub {
-		my $expected = $_[3];
+		my $expected = $_[0]->[3];
 		print 'not ' unless defined wantarray == defined $expected
 				 && wantarray eq $expected;
-		ok $_[0]
+		ok $_[0]->[0]
 	},
 	post => sub {
 		my $expected = $_[3];
